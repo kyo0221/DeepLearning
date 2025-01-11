@@ -28,6 +28,44 @@ class SimpleConvNet:
                             np.random.randn(hidden_size, output_size)
         self.params['b3'] = np.zeros(output_size)
 
+
+        self.layers['Pool1'] = Pooling(pool_h=2, pool_w=2, stride=2)
+        self.layers['Affine1'] = Affine(self.params['W2'],
+                                        self.params['b2'])
+        self.layers['Relu2'] = Relu()
+        self.layers['Affine2'] = Affine(self.params['W3'],
+                                        self.params['b3'])
+        self.last_layer = SoftmaxWithLoss()
+
+    def predict(self, x):
+        for layer in self.layers.values():
+            x = layer.forward(x)
+        return x
+    
+    def loss(self, x, t):
+        y = self.predict(x)
+        return self.lastLayer.forward(y, t)
+    
+    def gradient(self, x, t):
+        # forward
+        self.loss(x, t)
+        # backward
+        dout = 1
+        dout = self.lastLayer.backward(dout)
+        layers = list(self.layers.values())
+        layers.reverse()
+        for layer in layers:
+            dout = layer.backward(dout)
+
+        grads = {}
+        grads['W1'] = self.layers['Conv1'].dW
+        grads['b1'] = self.layers['Conv1'].db
+        grads['W2'] = self.layers['Affine1'].dW
+        grads['b2'] = self.layers['Affine1'].db
+        grads['W3'] = self.layers['Affine2'].dW
+        grads['b3'] = self.layers['Affine2'].db
+        return grads
+
 class Convolution:
     def __init__(self, W, b, stride=1, pad=0):
         self.W = W
